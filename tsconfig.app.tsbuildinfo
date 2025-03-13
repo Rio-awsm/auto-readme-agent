@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/contexts/authcontext.tsx","./src/lib/firebase.ts","./src/lib/gemini.ts","./src/lib/github.ts","./src/pages/dashboard.tsx","./src/pages/login.tsx","./src/pages/repository.tsx","./src/types/github.ts"],"errors":true,"version":"5.7.3"}
