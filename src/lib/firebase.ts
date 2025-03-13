@@ -13,9 +13,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
-// Configure GitHub provider with required scopes
 export const githubProvider = new GithubAuthProvider();
-githubProvider.addScope('repo'); // Add repo scope for full repository access
+githubProvider.addScope('repo');
 githubProvider.setCustomParameters({
   allow_signup: 'false'
 });
