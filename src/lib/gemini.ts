@@ -40,6 +40,13 @@ export class GeminiService {
       ? repoDetails.topics.join(', ') 
       : '';
 
+    // Fix for TS2531 error - ensure license exists and has name before accessing
+    const licenseInfo = isEnrichedDetails && 
+                       repoDetails.license && 
+                       repoDetails.license.name 
+                       ? `- License: ${repoDetails.license.name}` 
+                       : '';
+
     const prompt = `Create a modern, comprehensive, and professional README.md for a GitHub repository with these details:
 
 REPOSITORY DETAILS:
@@ -57,7 +64,7 @@ ${topics ? `- Topics/Tags: ${topics}` : ''}
 ${technologies ? `- Technologies/Dependencies: ${technologies}` : ''}
 ${contributors ? `- Contributors: ${contributors}` : ''}
 ${releases ? `- Recent Releases: ${releases}` : ''}
-${isEnrichedDetails && (repoDetails as RepositoryDetails).license ? `- License: ${(repoDetails as RepositoryDetails).license.name}` : ''}
+${licenseInfo}
 - Project Type: ${projectType}
 ${existingReadme ? '\nEXISTING README TO IMPROVE:\n\n' + existingReadme : ''}
 
@@ -250,16 +257,19 @@ Format the entire response in clean, modern Markdown syntax only. The README sho
       .replace(/img\.shields\.io\/badge\/license-([^-]*)-blue/g, 'img.shields.io/badge/license-$1-yellow')
       .replace(/img\.shields\.io\/badge\/dependencies-([^-]*)-blue/g, 'img.shields.io/badge/dependencies-$1-brightgreen');
     
-    cleanedReadme = cleanedReadme.replace(/```(\w+)\s*\n([\s\S]*?)```/gm, (match, language, code) => {
+    // Fix TS6133: unused 'match' parameter
+    cleanedReadme = cleanedReadme.replace(/```(\w+)\s*\n([\s\S]*?)```/gm, (_, language, code) => {
       return `\`\`\`${language}\n${code.trim()}\n\`\`\``;
     });
     
-    cleanedReadme = cleanedReadme.replace(/\|\s*([\w\s-]+)\s*\|\s*([\w\s-]+)\s*\|\s*([\w\s-\.]+)\s*\|/gm, (match, col1, col2, col3) => {
+    // Fix TS6133: unused 'match' parameter
+    cleanedReadme = cleanedReadme.replace(/\|\s*([\w\s-]+)\s*\|\s*([\w\s-]+)\s*\|\s*([\w\s-\.]+)\s*\|/gm, (_, col1, col2, col3) => {
       return `| ${col1.trim()} | ${col2.trim()} | ${col3.trim()} |`;
     });
     
+    // Fix TS6133: unused 'match' parameter
     cleanedReadme = cleanedReadme.replace(/(\|\s*[\w\s-]+\s*\|\s*[\w\s-]+\s*\|\s*[\w\s-\.]+\s*\|\n)(?!\|\s*[-:]+\s*\|\s*[-:]+\s*\|\s*[-:]+\s*\|)/gm, 
-      (match, headerRow) => {
+      (_, headerRow) => {
         return `${headerRow}| --- | --- | --- |\n`;
     });
     

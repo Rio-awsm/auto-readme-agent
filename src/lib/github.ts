@@ -1,5 +1,5 @@
 import { Octokit } from 'octokit';
-import type { GitHubRepository, LanguageStats, RepositoryDetails } from '../types/github';
+import type { CommitActivity, Contributor, GitHubRepository, LanguageStats, Release, RepositoryDetails } from '../types/github';
 
 export class GitHubService {
   private octokit: Octokit;
@@ -39,7 +39,7 @@ export class GitHubService {
   // Get detailed repository information for better README generation
   async getRepositoryDetails(owner: string, repo: string): Promise<RepositoryDetails> {
     try {
-      const [repoData, languages, contributors, releases, commitActivity] = await Promise.all([
+      const [repoData, languages, rawContributors, rawReleases, rawCommitActivity] = await Promise.all([
         this.octokit.rest.repos.get({ owner, repo }).then(res => res.data),
         this.getLanguages(owner, repo),
         this.getContributors(owner, repo),
@@ -47,28 +47,41 @@ export class GitHubService {
         this.getCommitActivity(owner, repo)
       ]);
 
+      // Ensure we have proper types for the data
+      const contributors: Contributor[] = rawContributors.map(c => ({
+        login: c.login || '',
+        avatar_url: c.avatar_url || '',
+        contributions: c.contributions,
+        profile_url: c.profile_url || ''
+      }));
+
+      const releases: Release[] = rawReleases.map(r => ({
+        name: r.name || '',
+        tag_name: r.tag_name,
+        published_at: r.published_at || '',
+        html_url: r.html_url,
+        body: r.body || ''
+      }));
+
+      const commitActivity: CommitActivity[] = Array.isArray(rawCommitActivity) 
+        ? rawCommitActivity as CommitActivity[]
+        : [];
+
       // Get README content if it exists
       const readme = await this.getReadme(owner, repo);
       
       // Try to get package.json for dependency information
       const packageJson = await this.getFileContents(owner, repo, 'package.json');
       
-      // Get license information
-      const license = repoData.license ? {
-        name: repoData.license.name,
-        url: repoData.license.url
-      } : null;
-      
       return {
-        ...repoData,
+        ...repoData as GitHubRepository,
         languages,
         contributors,
         releases,
         commitActivity,
         readme: readme ? readme.content : null,
         readmeSha: readme ? readme.sha : null,
-        packageJson,
-        license
+        packageJson
       };
     } catch (error) {
       console.error("Error fetching repository details:", error);
@@ -136,9 +149,9 @@ export class GitHubService {
       });
       
       return data.map(release => ({
-        name: release.name,
+        name: release.name || '',
         tag_name: release.tag_name,
-        published_at: release.published_at,
+        published_at: release.published_at || '',
         html_url: release.html_url,
         body: release.body
       }));
@@ -156,7 +169,7 @@ export class GitHubService {
         repo,
       });
       
-      return data;
+      return data || [];
     } catch (error) {
       console.error("Error fetching commit activity:", error);
       return [];

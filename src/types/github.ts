@@ -50,11 +50,6 @@ export interface RepositoryDetails extends GitHubRepository {
     content: string;
     sha: string;
   } | null;
-  license: {
-    key: string;
-    name: string;
-    url: string;
-  } | null;
 }
 
 // Language statistics with percentage information
