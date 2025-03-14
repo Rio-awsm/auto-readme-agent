@@ -80,13 +80,13 @@ export default function Repository() {
 
       // Use repositoryDetails if available, otherwise use basic repository info
       const repoData = repositoryDetails || repository;
-      const newReadme = await gemini.generateReadme(repoData, readme);
+      const newReadme = await gemini.generateReadme(repoData, readme ?? undefined);
       
       const prData = await github.createOrUpdateReadme(
         repository.owner.login,
         repository.name,
         newReadme,
-        readmeSha  // Pass the SHA when we have it (for updates)
+        readmeSha ?? undefined  // Pass the SHA when we have it (for updates)
       );
 
       setReadme(newReadme);

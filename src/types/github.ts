@@ -51,6 +51,7 @@ export interface RepositoryDetails extends GitHubRepository {
     sha: string;
   } | null;
   license: {
+    key: string;
     name: string;
     url: string;
   } | null;
